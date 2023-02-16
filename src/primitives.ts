@@ -1,40 +1,39 @@
-type VoidFn = ()=>any;
+type VoidFn = () => any;
 
-const context:VoidFn[] = [];
+const context: VoidFn[] = [];
 
-export function createSignal(value:any){
+export function createSignal(value: any) {
   const subscribers = new Set<VoidFn>();
 
   let localValue = value;
-  const read = ()=>{
-    const currentEffect= getCurrentCtxEffect?.();
-    currentEffect && subscribers.add(currentEffect)
+  const accessor = () => {
+    const currentEffect = getCurrentCtxEffect?.();
+    currentEffect && subscribers.add(currentEffect);
     return localValue;
-  }
+  };
 
-  const write = (newValue:any)=>{
+  const setter = (newValue: any) => {
     localValue = newValue;
-    for (let subscriber of subscribers){
+    for (let subscriber of subscribers) {
       subscriber();
     }
-  }
+  };
 
-  return [read, write];
+  return [accessor, setter];
 }
 
-export function createEffect(fn:VoidFn){
-  const execute = ()=>{
+export function createEffect(fn: VoidFn) {
+  const execute = () => {
     context.push(execute);
     try {
-      fn()
-    } finally{
+      fn();
+    } finally {
       context.pop();
     }
-  }
-  execute()
+  };
+  execute();
 }
 
-
-function getCurrentCtxEffect(){
+function getCurrentCtxEffect() {
   return context.at(-1);
 }
